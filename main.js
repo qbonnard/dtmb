@@ -35,6 +35,8 @@ Clay.ready = function( fn ) {
 if(typeof cards !== 'undefined' && cards.kik)
     window.location.href = 'card://flirtybird.clay.io';
 
+var dirtyHack;
+
 function main() {
 
 var state = {
@@ -343,6 +345,8 @@ function flap() {
         }
     }
 }
+
+dirtyHack = flap;
 
 function spawnCloud() {
     cloudsTimer.stop();

@@ -20,6 +20,9 @@
                 max-height: 568px;
                 max-width: 320px;
             }
+            .hidden {
+                display: none;
+            }
             </style>
         </style>
     </head>
@@ -28,5 +31,55 @@
         <script src="http://cdn.kik.com/kik/1.0.0/kik.js"></script>
         <script src="phaser.min.js"></script>
         <script src="main.js?1392357744097"></script>
+        <script src="chilitags.js"></script>
+
+        <video id="inputVideo" autoplay class="hidden" width="640" height="480"></video>
+        <canvas id="chilitagsCanvas" width="640" height="480"></canvas>
+        <script>
+            var video = document.getElementById('inputVideo');
+            var canvas = document.getElementById('chilitagsCanvas');
+            var canvasCtx = canvas.getContext('2d');
+            var localMediaStream = null;
+
+            Chilitags.setFilter(0,0);
+            var updateChilitags = function() {
+                if (localMediaStream) {
+                    //Work around Firefox's bug 879717
+                    var videoIsReady = false;
+                    while (!videoIsReady) {
+                        try {
+                            canvasCtx.drawImage(video, 0, 0, video.width, video.height);
+                            videoIsReady = true;
+                        } catch (e) {
+                            if (e.name.indexOf("NS_ERROR_NOT_AVAILABLE") == -1) throw e;
+                            else console.log("try again");
+                        }
+                    }
+                    canvasCtx.drawImage(video, 0, 0, video.width, video.height);
+                    var tags = Chilitags.find(canvas, false);
+                    if ("8" in tags) dirtyHack();
+                }
+                requestAnimationFrame(updateChilitags);
+            }
+
+            navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+            navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+            if (!!navigator.getUserMedia) {
+                console.log("Camera OK");
+                navigator.getUserMedia(
+                    {video: true},
+                    function(stream) {
+                        window.URL = window.URL || window.webkitURL;
+                        video.src = window.URL.createObjectURL(stream);
+                        localMediaStream = stream;
+                        video.play();
+                    },
+                    function(e) { console.log('Error in getUserMedia()', e); });
+                //the timeOut is a work around Firefox's bug 879717
+                video.addEventListener('play', function() {setTimeout(updateChilitags, 2500);}, false);
+            }
+            else alert("No getUserMedia");
+        </script>
     </body>
 </html>
